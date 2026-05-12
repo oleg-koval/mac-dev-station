@@ -7,6 +7,13 @@
   <meta name="description" content="Set up a complete productivity stack on a fresh Mac in one command. Karabiner Hyper key, AeroSpace, Hammerspoon, kitty, Raycast, zsh + starship — all wired together.">
   <meta name="keywords" content="macOS, developer environment, dotfiles, Karabiner, AeroSpace, Hammerspoon, Apple Silicon, brew, setup automation">
 
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="mac-dev-station — One-command macOS dev environment setup">
@@ -26,16 +33,16 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --purple: #a78bfa;
-      --blue: #60a5fa;
-      --teal: #34d399;
+      --amber: #f59e0b;
+      --amber-light: #fbbf24;
+      --blue: #38bdf8;
       --fg: rgba(255,255,255,0.90);
       --fg-muted: rgba(255,255,255,0.55);
       --fg-dim: rgba(255,255,255,0.30);
       --glass-bg: rgba(255,255,255,0.04);
-      --glass-border: rgba(255,255,255,0.09);
-      --card-bg: rgba(255,255,255,0.05);
-      --code-bg: rgba(0,0,0,0.35);
+      --glass-border: rgba(255,255,255,0.08);
+      --card-bg: rgba(255,255,255,0.04);
+      --code-bg: rgba(0,0,0,0.40);
     }
 
     html { scroll-behavior: smooth; }
@@ -43,20 +50,20 @@
     body {
       min-height: 100vh;
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-      background: #0a0a1a;
+      background: #08080f;
       color: var(--fg);
       overflow-x: hidden;
     }
 
-    /* Mesh background */
+    /* Ambient glow — amber source top-left, deep navy anchor bottom-right */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(ellipse 800px 600px at 15% 20%, rgba(124,58,237,0.18) 0%, transparent 70%),
-        radial-gradient(ellipse 600px 500px at 85% 80%, rgba(8,145,178,0.15) 0%, transparent 70%),
-        radial-gradient(ellipse 400px 400px at 60% 10%, rgba(52,211,153,0.08) 0%, transparent 70%);
+        radial-gradient(ellipse 700px 500px at 8% 12%, rgba(245,158,11,0.13) 0%, transparent 68%),
+        radial-gradient(ellipse 600px 500px at 90% 88%, rgba(17,36,102,0.35) 0%, transparent 70%),
+        radial-gradient(ellipse 350px 280px at 62% 4%, rgba(245,158,11,0.06) 0%, transparent 70%);
       pointer-events: none;
       z-index: 0;
     }
@@ -86,7 +93,7 @@
       font-size: clamp(2.4rem, 5vw, 3.6rem);
       font-weight: 800;
       letter-spacing: -0.03em;
-      background: linear-gradient(135deg, var(--purple), var(--blue), var(--teal));
+      background: linear-gradient(135deg, var(--amber), var(--amber-light), #fef3c7);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -130,7 +137,7 @@
       position: absolute;
       inset: 0 0 auto;
       height: 2px;
-      background: linear-gradient(90deg, var(--purple), var(--blue), var(--teal));
+      background: linear-gradient(90deg, var(--amber), var(--amber-light), var(--blue));
     }
 
     .install-label {
@@ -197,8 +204,8 @@
       font-size: 0.7rem;
       font-weight: 700;
       font-family: 'SF Mono', 'Fira Code', monospace;
-      color: var(--teal);
-      background: rgba(52,211,153,0.1);
+      color: var(--amber);
+      background: rgba(245,158,11,0.10);
       border-radius: 4px;
       padding: 2px 7px;
       margin-bottom: 8px;
@@ -255,7 +262,7 @@
     .hotkey-group h3 {
       font-size: 0.85rem;
       font-weight: 600;
-      color: var(--purple);
+      color: var(--amber);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-bottom: 14px;
@@ -499,6 +506,11 @@ dclean          # Docker compose nuke + rebuild</pre>
       <a href="https://github.com/oleg-koval/mac-dev-station/blob/main/CONTRIBUTING.md">Contributing</a>
       <a href="https://github.com/oleg-koval/mac-dev-station/blob/main/SECURITY.md">Security</a>
       <a href="https://buymeacoffee.com/olko">☕ Buy me a coffee</a>
+    </div>
+    <div style="margin-bottom:16px">
+      <a href="https://sellwithboost.com" target="_blank" rel="noopener noreferrer">
+        <img src="https://sellwithboost.com/badge/listing-dark.svg" alt="Listed on Sell With Boost" style="height:40px;width:auto;" />
+      </a>
     </div>
     <div class="footer-meta">
       MIT License · Built by <a href="https://github.com/oleg-koval">oleg-koval</a>
