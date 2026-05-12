@@ -2,9 +2,11 @@ package phases
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/oleg-koval/mac-dev-station/internal/configs"
 	"github.com/oleg-koval/mac-dev-station/internal/system"
@@ -26,6 +28,44 @@ type Phase interface {
 	Description() string
 	Check(ctx context.Context) (Status, error)
 	Apply(ctx context.Context) error
+}
+
+// backupConfig backs up an existing config file to ~/.dotfiles-backup-YYYYMMDD/
+func backupConfig(srcPath string) error {
+	if _, err := os.Stat(srcPath); err != nil {
+		return nil // File doesn't exist, no backup needed
+	}
+
+	backupDir := filepath.Join(homeDir, ".dotfiles-backup-"+time.Now().Format("20060102"))
+	if err := os.MkdirAll(backupDir, 0o755); err != nil {
+		return fmt.Errorf("failed to create backup dir: %w", err)
+	}
+
+	content, err := os.ReadFile(srcPath)
+	if err != nil {
+		return fmt.Errorf("failed to read file for backup: %w", err)
+	}
+
+	relPath, _ := filepath.Rel(homeDir, srcPath)
+	backupPath := filepath.Join(backupDir, relPath)
+	if err := os.MkdirAll(filepath.Dir(backupPath), 0o755); err != nil {
+		return fmt.Errorf("failed to create backup subdirs: %w", err)
+	}
+
+	if err := os.WriteFile(backupPath, content, 0o644); err != nil {
+		return fmt.Errorf("failed to write backup: %w", err)
+	}
+
+	return nil
+}
+
+// fileSHA256 computes the SHA256 hash of a file's contents
+func fileSHA256(path string) (string, error) {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%x", sha256.Sum256(content)), nil
 }
 
 var Registry = []Phase{
@@ -216,10 +256,46 @@ func (p *KarabinerPhase) Description() string {
 }
 
 func (p *KarabinerPhase) Check(ctx context.Context) (Status, error) {
-	return StatusUnknown, nil
+	configPath := filepath.Join(homeDir, ".config/karabiner/karabiner.json")
+
+	// Check if Karabiner is installed
+	if !system.AppInstalled(ctx, "Karabiner-Elements") {
+		return StatusMissing, nil
+	}
+
+	// Check if config exists and matches embedded version
+	if _, err := os.Stat(configPath); err != nil {
+		return StatusMissing, nil
+	}
+
+	embeddedHash := fmt.Sprintf("%x", sha256.Sum256(configs.KarabinerContent))
+	fileHash, err := fileSHA256(configPath)
+	if err == nil && embeddedHash == fileHash {
+		return StatusSatisfied, nil
+	}
+
+	return StatusPartial, nil
 }
 
 func (p *KarabinerPhase) Apply(ctx context.Context) error {
+	configDir := filepath.Join(homeDir, ".config/karabiner")
+	configPath := filepath.Join(configDir, "karabiner.json")
+
+	// Backup existing config
+	if err := backupConfig(configPath); err != nil {
+		return fmt.Errorf("backup failed: %w", err)
+	}
+
+	// Create config directory
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
+		return fmt.Errorf("failed to create config dir: %w", err)
+	}
+
+	// Write embedded config
+	if err := os.WriteFile(configPath, configs.KarabinerContent, 0o644); err != nil {
+		return fmt.Errorf("failed to write Karabiner config: %w", err)
+	}
+
 	return nil
 }
 
