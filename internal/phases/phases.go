@@ -2,8 +2,11 @@ package phases
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/oleg-koval/mac-dev-station/internal/system"
 )
 
 var homeDir = os.ExpandEnv("$HOME")
@@ -53,7 +56,33 @@ func (p *PreflightPhase) Description() string {
 }
 
 func (p *PreflightPhase) Check(ctx context.Context) (Status, error) {
-	return StatusUnknown, nil
+	// Check macOS version
+	version, err := system.MacOSVersion(ctx)
+	if err != nil {
+		return StatusMissing, err
+	}
+	if version < 14.0 {
+		return StatusMissing, fmt.Errorf("macOS 14+ required, found %.1f", version)
+	}
+
+	// Check Homebrew
+	if !system.BrewInstalled(ctx) {
+		return StatusMissing, nil
+	}
+
+	// Check xcode-select
+	_, err = system.RunCmd(ctx, "xcode-select", "-p")
+	if err != nil {
+		return StatusMissing, nil
+	}
+
+	// Check gh auth
+	_, err = system.RunCmd(ctx, "gh", "auth", "status")
+	if err != nil {
+		return StatusPartial, nil // gh not authenticated but brew/xcode exist
+	}
+
+	return StatusSatisfied, nil
 }
 
 func (p *PreflightPhase) Apply(ctx context.Context) error {
