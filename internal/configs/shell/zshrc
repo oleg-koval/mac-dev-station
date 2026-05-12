@@ -1,0 +1,60 @@
+# zsh configuration
+# ~/.zshrc
+
+# Zinit initialization
+ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}}/zinit/zinit.git"
+[ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
+[ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+source "${ZINIT_HOME}/zinit.zsh"
+
+# History
+HISTSIZE=10000
+SAVEHIST=10000
+HISTFILE=~/.zsh_history
+setopt SHARE_HISTORY
+setopt INC_APPEND_HISTORY
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE
+
+# Options
+setopt EXTENDED_GLOB
+setopt NOMATCH
+unsetopt BEEP
+
+# Aliases
+if [ -f ~/.zsh/aliases.zsh ]; then
+    source ~/.zsh/aliases.zsh
+fi
+
+# Personal secrets/setup (not in git)
+if [ -f ~/.zsh/secrets.zsh ]; then
+    source ~/.zsh/secrets.zsh
+fi
+
+# Starship prompt
+eval "$(starship init zsh)"
+
+# Zoxide initialization
+eval "$(zoxide init --no-auto-cd zsh)"
+
+# FZF configuration
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# Atuin shell history
+eval "$(atuin init zsh)"
+
+# fnm (Fast Node Manager)
+eval "$(fnm env --use-on-cd)"
+
+# Plugin bundles
+zinit light zsh-users/zsh-syntax-highlighting
+zinit light zsh-users/zsh-autosuggestions
+zinit light zsh-users/zsh-completions
+
+# Completion settings
+autoload -Uz compinit
+if [[ -n ${ZDOTDIR}/.zcompdump(#qNmh+24) ]]; then
+    compinit
+else
+    compinit -C
+fi

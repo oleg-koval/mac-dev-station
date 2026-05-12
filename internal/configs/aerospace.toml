@@ -1,0 +1,59 @@
+# aerospace.toml
+# AeroSpace tiling window manager configuration
+# https://github.com/nikitabobko/AeroSpace
+
+[workspaces]
+# Define workspaces with their display mappings
+workspace-1 = { bind-to-monitor = 1 }
+workspace-2 = { bind-to-monitor = 1 }
+workspace-3 = { bind-to-monitor = 1 }
+workspace-4 = { bind-to-monitor = 1 }
+workspace-5 = { bind-to-monitor = 2 }
+workspace-6 = { bind-to-monitor = 2 }
+
+[mode.main.binding]
+# Focus workspace keybindings
+alt-1 = "workspace-focus-monitor-0"
+alt-2 = "workspace-focus-monitor-1"
+
+# Window movement commands
+alt-h = "focus left"
+alt-j = "focus down"
+alt-k = "focus up"
+alt-l = "focus right"
+
+# Resizing windows
+alt-shift-h = "resize width -50"
+alt-shift-j = "resize height +50"
+alt-shift-k = "resize height -50"
+alt-shift-l = "resize width +50"
+
+# Toggle fullscreen
+alt-f = "fullscreen"
+
+# Reload configuration
+alt-shift-c = "reload-config"
+
+# Layout management
+alt-a = "layout accordion"
+alt-t = "layout tiles"
+
+[gaps]
+inner.horizontal = 10
+inner.vertical = 10
+outer.left = 10
+outer.bottom = 10
+outer.top = 10
+outer.right = 10
+
+[workspace-to-monitor-force-assignment]
+1 = 1
+2 = 1
+3 = 1
+4 = 1
+5 = 2
+6 = 2
+
+[positions]
+# Window layout defaults
+default-layout = "tiles"
