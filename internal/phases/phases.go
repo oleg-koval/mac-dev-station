@@ -142,10 +142,33 @@ func (p *FoundationsPhase) Description() string {
 }
 
 func (p *FoundationsPhase) Check(ctx context.Context) (Status, error) {
-	return StatusUnknown, nil
+	if !system.BrewInstalled(ctx) {
+		return StatusMissing, nil
+	}
+	_, err := system.RunCmd(ctx, "xcode-select", "-p")
+	if err != nil {
+		return StatusMissing, nil
+	}
+	return StatusSatisfied, nil
 }
 
 func (p *FoundationsPhase) Apply(ctx context.Context) error {
+	if !system.BrewInstalled(ctx) {
+		return fmt.Errorf("brew not installed, install manually or run earlier phase")
+	}
+	_, err := system.RunCmd(context.Background(), "xcode-select", "--install")
+	if err != nil && err.Error() != "exit status 1" {
+		return fmt.Errorf("xcode-select install failed: %w", err)
+	}
+	if err := system.BrewUpdate(context.Background(), os.Stdout); err != nil {
+		return fmt.Errorf("brew update failed: %w", err)
+	}
+	if err := system.BrewUpgrade(context.Background(), os.Stdout); err != nil {
+		return fmt.Errorf("brew upgrade failed: %w", err)
+	}
+	if err := system.BrewCleanup(context.Background(), os.Stdout); err != nil {
+		return fmt.Errorf("brew cleanup failed: %w", err)
+	}
 	return nil
 }
 
@@ -311,10 +334,33 @@ func (p *AerospacePhase) Description() string {
 }
 
 func (p *AerospacePhase) Check(ctx context.Context) (Status, error) {
-	return StatusUnknown, nil
+	configPath := filepath.Join(homeDir, ".config/aerospace/aerospace.toml")
+	if !system.AppInstalled(ctx, "AeroSpace") {
+		return StatusMissing, nil
+	}
+	if _, err := os.Stat(configPath); err != nil {
+		return StatusMissing, nil
+	}
+	embeddedHash := fmt.Sprintf("%x", sha256.Sum256(configs.AerospaceContent))
+	fileHash, err := fileSHA256(configPath)
+	if err == nil && embeddedHash == fileHash {
+		return StatusSatisfied, nil
+	}
+	return StatusPartial, nil
 }
 
 func (p *AerospacePhase) Apply(ctx context.Context) error {
+	configDir := filepath.Join(homeDir, ".config/aerospace")
+	configPath := filepath.Join(configDir, "aerospace.toml")
+	if err := backupConfig(configPath); err != nil {
+		return fmt.Errorf("backup failed: %w", err)
+	}
+	if err := os.MkdirAll(configDir, 0o755); err != nil {
+		return fmt.Errorf("failed to create config dir: %w", err)
+	}
+	if err := os.WriteFile(configPath, configs.AerospaceContent, 0o644); err != nil {
+		return fmt.Errorf("failed to write AeroSpace config: %w", err)
+	}
 	return nil
 }
 
@@ -330,10 +376,38 @@ func (p *HammerspoonPhase) Description() string {
 }
 
 func (p *HammerspoonPhase) Check(ctx context.Context) (Status, error) {
-	return StatusUnknown, nil
+	initPath := filepath.Join(homeDir, ".hammerspoon/init.lua")
+	if !system.AppInstalled(ctx, "Hammerspoon") {
+		return StatusMissing, nil
+	}
+	if _, err := os.Stat(initPath); err != nil {
+		return StatusMissing, nil
+	}
+	embeddedHash := fmt.Sprintf("%x", sha256.Sum256(configs.HammerspoonInitContent))
+	fileHash, err := fileSHA256(initPath)
+	if err == nil && embeddedHash == fileHash {
+		return StatusSatisfied, nil
+	}
+	return StatusPartial, nil
 }
 
 func (p *HammerspoonPhase) Apply(ctx context.Context) error {
+	hsDir := filepath.Join(homeDir, ".hammerspoon")
+	initPath := filepath.Join(hsDir, "init.lua")
+	watcherPath := filepath.Join(hsDir, "display-watcher.lua")
+
+	if err := backupConfig(initPath); err != nil {
+		return fmt.Errorf("backup failed: %w", err)
+	}
+	if err := os.MkdirAll(hsDir, 0o755); err != nil {
+		return fmt.Errorf("failed to create config dir: %w", err)
+	}
+	if err := os.WriteFile(initPath, configs.HammerspoonInitContent, 0o644); err != nil {
+		return fmt.Errorf("failed to write init.lua: %w", err)
+	}
+	if err := os.WriteFile(watcherPath, configs.HammerspoonDisplayWatcherContent, 0o644); err != nil {
+		return fmt.Errorf("failed to write display-watcher.lua: %w", err)
+	}
 	return nil
 }
 
@@ -349,10 +423,42 @@ func (p *KittyPhase) Description() string {
 }
 
 func (p *KittyPhase) Check(ctx context.Context) (Status, error) {
-	return StatusUnknown, nil
+	confPath := filepath.Join(homeDir, ".config/kitty/kitty.conf")
+	if !system.AppInstalled(ctx, "kitty") {
+		return StatusMissing, nil
+	}
+	if _, err := os.Stat(confPath); err != nil {
+		return StatusMissing, nil
+	}
+	embeddedHash := fmt.Sprintf("%x", sha256.Sum256(configs.KittyConfContent))
+	fileHash, err := fileSHA256(confPath)
+	if err == nil && embeddedHash == fileHash {
+		return StatusSatisfied, nil
+	}
+	return StatusPartial, nil
 }
 
 func (p *KittyPhase) Apply(ctx context.Context) error {
+	kittyDir := filepath.Join(homeDir, ".config/kitty")
+	confPath := filepath.Join(kittyDir, "kitty.conf")
+	themePath := filepath.Join(kittyDir, "one-dark.conf")
+	projPath := filepath.Join(kittyDir, "projects.py")
+
+	if err := backupConfig(confPath); err != nil {
+		return fmt.Errorf("backup failed: %w", err)
+	}
+	if err := os.MkdirAll(kittyDir, 0o755); err != nil {
+		return fmt.Errorf("failed to create config dir: %w", err)
+	}
+	if err := os.WriteFile(confPath, configs.KittyConfContent, 0o644); err != nil {
+		return fmt.Errorf("failed to write kitty.conf: %w", err)
+	}
+	if err := os.WriteFile(themePath, configs.KittyColorSchemeContent, 0o644); err != nil {
+		return fmt.Errorf("failed to write color scheme: %w", err)
+	}
+	if err := os.WriteFile(projPath, configs.KittyProjectsContent, 0o755); err != nil {
+		return fmt.Errorf("failed to write projects.py: %w", err)
+	}
 	return nil
 }
 
@@ -368,10 +474,33 @@ func (p *ShellPhase) Description() string {
 }
 
 func (p *ShellPhase) Check(ctx context.Context) (Status, error) {
-	return StatusUnknown, nil
+	zshPath := filepath.Join(homeDir, ".zshrc")
+	if _, err := os.Stat(zshPath); err == nil {
+		return StatusPartial, nil
+	}
+	return StatusMissing, nil
 }
 
 func (p *ShellPhase) Apply(ctx context.Context) error {
+	zshDir := filepath.Join(homeDir, ".zsh")
+	os.MkdirAll(zshDir, 0o755)
+
+	// Write zshrc
+	zshPath := filepath.Join(homeDir, ".zshrc")
+	if err := os.WriteFile(zshPath, configs.ZshrcContent, 0o644); err != nil {
+		return fmt.Errorf("failed to write zshrc: %w", err)
+	}
+
+	// Write secrets template
+	secretsPath := filepath.Join(zshDir, "secrets.zsh")
+	os.WriteFile(secretsPath, configs.SecretsTemplateContent, 0o600)
+
+	// Write backup script
+	scriptDir := filepath.Join(homeDir, "code/oss/scripts")
+	os.MkdirAll(scriptDir, 0o755)
+	scriptPath := filepath.Join(scriptDir, "backup-zsh.sh")
+	os.WriteFile(scriptPath, configs.BackupScriptContent, 0o755)
+
 	return nil
 }
 
@@ -387,11 +516,14 @@ func (p *RaycastPhase) Description() string {
 }
 
 func (p *RaycastPhase) Check(ctx context.Context) (Status, error) {
-	return StatusUnknown, nil
+	if system.AppInstalled(ctx, "Raycast") {
+		return StatusSatisfied, nil
+	}
+	return StatusMissing, nil
 }
 
 func (p *RaycastPhase) Apply(ctx context.Context) error {
-	return nil
+	return system.RunCmdStream(ctx, os.Stdout, "open", "-a", "Raycast")
 }
 
 // StartersPhase clones oleg-koval/starters
@@ -406,11 +538,21 @@ func (p *StartersPhase) Description() string {
 }
 
 func (p *StartersPhase) Check(ctx context.Context) (Status, error) {
-	return StatusUnknown, nil
+	startersPath := filepath.Join(homeDir, "code/starters")
+	if _, err := os.Stat(startersPath); err == nil {
+		return StatusSatisfied, nil
+	}
+	return StatusMissing, nil
 }
 
 func (p *StartersPhase) Apply(ctx context.Context) error {
-	return nil
+	ossDir := filepath.Join(homeDir, "code")
+	os.MkdirAll(ossDir, 0o755)
+	startersPath := filepath.Join(ossDir, "starters")
+	if _, err := os.Stat(startersPath); err == nil {
+		return nil // Already cloned
+	}
+	return system.RunCmdStream(ctx, os.Stdout, "git", "-C", ossDir, "clone", "git@github.com:oleg-koval/starters.git")
 }
 
 // PermissionsWalkPhase guides through Accessibility + Driver Extensions
@@ -425,10 +567,16 @@ func (p *PermissionsWalkPhase) Description() string {
 }
 
 func (p *PermissionsWalkPhase) Check(ctx context.Context) (Status, error) {
-	return StatusUnknown, nil
+	return StatusPartial, nil
 }
 
 func (p *PermissionsWalkPhase) Apply(ctx context.Context) error {
+	fmt.Println("Please grant accessibility permissions to these apps:")
+	fmt.Println("  - Karabiner-Elements → System Settings → Privacy → Accessibility")
+	fmt.Println("  - AeroSpace → System Settings → Privacy → Accessibility")
+	fmt.Println("  - Hammerspoon → System Settings → Privacy → Accessibility")
+	fmt.Println("  - Raycast → System Settings → Privacy → Accessibility")
+	fmt.Println("\nYou may need to restart your Mac for changes to take effect.")
 	return nil
 }
 
@@ -444,7 +592,28 @@ func (p *VerifyPhase) Description() string {
 }
 
 func (p *VerifyPhase) Check(ctx context.Context) (Status, error) {
-	return StatusUnknown, nil
+	checks := []struct {
+		name string
+		fn   func(context.Context) bool
+	}{
+		{"brew", system.BrewInstalled},
+		{"kitty", func(c context.Context) bool { return system.AppInstalled(c, "kitty") }},
+		{"karabiner", func(c context.Context) bool { return system.AppInstalled(c, "Karabiner-Elements") }},
+		{"aerospace", func(c context.Context) bool { return system.AppInstalled(c, "AeroSpace") }},
+	}
+
+	allPass := true
+	for _, check := range checks {
+		if !check.fn(ctx) {
+			fmt.Printf("  ✗ %s not found\n", check.name)
+			allPass = false
+		}
+	}
+
+	if allPass {
+		return StatusSatisfied, nil
+	}
+	return StatusPartial, nil
 }
 
 func (p *VerifyPhase) Apply(ctx context.Context) error {
@@ -463,9 +632,24 @@ func (p *CheatsheetPhase) Description() string {
 }
 
 func (p *CheatsheetPhase) Check(ctx context.Context) (Status, error) {
-	return StatusUnknown, nil
+	return StatusSatisfied, nil
 }
 
 func (p *CheatsheetPhase) Apply(ctx context.Context) error {
+	fmt.Println("=== Hyper Key (Caps Lock) ===")
+	fmt.Println("  Caps (tap)    → Escape")
+	fmt.Println("  Caps+T        → Open kitty")
+	fmt.Println("  Caps+B        → Open Chrome")
+	fmt.Println("  Caps+C        → Open Cursor")
+	fmt.Println("  Caps+S        → Open Slack")
+	fmt.Println("  Caps+L        → Linear (browser)")
+	fmt.Println("  Caps+F        → Figma (browser)")
+	fmt.Println("  Caps+N        → Notion (browser)")
+	fmt.Println("  Caps+H/J/K/;  → Arrow keys (vim)")
+	fmt.Println("\n=== AeroSpace Tiling ===")
+	fmt.Println("  Alt+H/J/K/L   → Focus left/down/up/right")
+	fmt.Println("  Alt+Shift+H/J/K/L → Resize window")
+	fmt.Println("  Alt+A         → Toggle accordion layout")
+	fmt.Println("  Alt+T         → Toggle tiles layout")
 	return nil
 }
