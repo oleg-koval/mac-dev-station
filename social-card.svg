@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="sc-title sc-desc">
+  <title id="sc-title">mac-dev-station — One-command macOS dev environment setup</title>
+  <desc id="sc-desc">Social preview card for mac-dev-station</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#08080e"/>
+      <stop offset="55%" stop-color="#0a0a12"/>
+      <stop offset="100%" stop-color="#07070e"/>
+    </linearGradient>
+    <!-- Warm amber blob top-left -->
+    <radialGradient id="blob1" cx="0%" cy="0%" r="100%">
+      <stop offset="0%" stop-color="#b45309" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#b45309" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Cool blue blob bottom-right (complement, subtle) -->
+    <radialGradient id="blob2" cx="100%" cy="100%" r="100%">
+      <stop offset="0%" stop-color="#1d4ed8" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#1d4ed8" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="90"/>
+    </filter>
+    <filter id="glow2">
+      <feGaussianBlur stdDeviation="70"/>
+    </filter>
+    <radialGradient id="knob-body" cx="38%" cy="32%" r="68%">
+      <stop offset="0%" stop-color="#1e1e2c"/>
+      <stop offset="100%" stop-color="#0e0e18"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Ambient blobs -->
+  <ellipse cx="220" cy="160" rx="420" ry="320" fill="url(#blob1)" filter="url(#glow)"/>
+  <ellipse cx="1100" cy="520" rx="360" ry="280" fill="url(#blob2)" filter="url(#glow2)"/>
+
+  <!-- Glass card -->
+  <rect x="60" y="60" width="1080" height="510" rx="24"
+        fill="rgba(255,255,255,0.03)"
+        stroke="rgba(255,255,255,0.07)"
+        stroke-width="1.5"/>
+
+  <!-- Amber accent bar top of card -->
+  <rect x="60" y="60" width="1080" height="3" rx="2" fill="#f59e0b"/>
+
+  <!-- ── Inline rotary dial logo (180×180, centered at x=168 y=315) ── -->
+  <g transform="translate(60, 225)">
+    <!-- Scale at 180/512 = 0.35156 -->
+    <g transform="scale(0.3516)">
+      <!-- Outer track groove -->
+      <circle cx="256" cy="256" r="196" fill="none" stroke="#18181f" stroke-width="28"/>
+      <!-- Scale dots (same positions as logo-a.svg) -->
+      <circle cx="122" cy="390" r="7" fill="#f59e0b" opacity="0.18"/>
+      <circle cx="70"  cy="293" r="7" fill="#f59e0b" opacity="0.18"/>
+      <circle cx="80"  cy="183" r="7" fill="#f59e0b" opacity="0.18"/>
+      <circle cx="150" cy="98"  r="7" fill="#f59e0b" opacity="0.30"/>
+      <circle cx="256" cy="60"  r="7" fill="#f59e0b" opacity="0.50"/>
+      <circle cx="362" cy="98"  r="7" fill="#f59e0b" opacity="0.80"/>
+      <!-- Active position dot at 60° -->
+      <circle cx="421" cy="158" r="10" fill="#f59e0b"/>
+      <!-- Past-current dots -->
+      <circle cx="432" cy="183" r="7" fill="#f59e0b" opacity="0.14"/>
+      <circle cx="442" cy="293" r="7" fill="#f59e0b" opacity="0.14"/>
+      <circle cx="390" cy="390" r="7" fill="#f59e0b" opacity="0.14"/>
+      <!-- Knob body -->
+      <circle cx="256" cy="256" r="168" fill="url(#knob-body)" stroke="#262632" stroke-width="3"/>
+      <!-- Notch line -->
+      <line x1="256" y1="256" x2="375" y2="187"
+            stroke="#f59e0b" stroke-width="24" stroke-linecap="round"/>
+      <!-- Counter-tail -->
+      <line x1="256" y1="256" x2="216" y2="279"
+            stroke="#f59e0b" stroke-width="14" stroke-linecap="round" opacity="0.28"/>
+      <!-- Center hub -->
+      <circle cx="256" cy="256" r="28" fill="#f59e0b"/>
+      <circle cx="256" cy="256" r="14" fill="#09090e"/>
+    </g>
+  </g>
+  <!-- ── end logo ── -->
+
+  <!-- Project name -->
+  <text x="252" y="186"
+        font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif"
+        font-size="64" font-weight="700" fill="white" letter-spacing="-1.5">mac-dev-station</text>
+
+  <!-- Tagline -->
+  <text x="252" y="234"
+        font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif"
+        font-size="25" fill="rgba(255,255,255,0.52)" letter-spacing="0.1">
+    One-command macOS dev setup · Apple Silicon · macOS 14+
+  </text>
+
+  <!-- Divider -->
+  <rect x="252" y="262" width="852" height="1" fill="rgba(255,255,255,0.07)"/>
+
+  <!-- Install command pill -->
+  <rect x="252" y="280" width="740" height="58" rx="10"
+        fill="rgba(0,0,0,0.40)" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+  <!-- Amber $ prompt -->
+  <text x="276" y="319"
+        font-family="'SF Mono', 'Fira Code', 'Cascadia Code', monospace"
+        font-size="13" fill="#f59e0b" opacity="0.85">$</text>
+  <text x="296" y="319"
+        font-family="'SF Mono', 'Fira Code', 'Cascadia Code', monospace"
+        font-size="20" fill="rgba(255,255,255,0.82)">
+    brew tap oleg-koval/tap &amp;&amp; brew install mac-dev-station
+  </text>
+
+  <!-- Feature bullets -->
+  <circle cx="264" cy="393" r="4" fill="#f59e0b"/>
+  <text x="282" y="400"
+        font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif"
+        font-size="22" fill="rgba(255,255,255,0.72)">13 idempotent phases — safe to re-run</text>
+
+  <circle cx="264" cy="443" r="4" fill="#f59e0b" opacity="0.7"/>
+  <text x="282" y="450"
+        font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif"
+        font-size="22" fill="rgba(255,255,255,0.72)">Karabiner · AeroSpace · Hammerspoon · kitty · Raycast</text>
+
+  <circle cx="264" cy="493" r="4" fill="#f59e0b" opacity="0.5"/>
+  <text x="282" y="500"
+        font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif"
+        font-size="22" fill="rgba(255,255,255,0.72)">zsh + starship + modern CLI · auto backups · no magic</text>
+
+  <!-- GitHub URL -->
+  <text x="1108" y="548"
+        font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif"
+        font-size="17" fill="rgba(255,255,255,0.28)" text-anchor="end">
+    github.com/oleg-koval/mac-dev-station
+  </text>
+</svg>

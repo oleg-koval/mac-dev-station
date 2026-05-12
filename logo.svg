@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="mac-dev-station — rotary dial concept">
+  <!--
+    Concept A: Amber Rotary Dial
+    Metaphor: a precision instrument knob set to a specific position.
+    "Dial set to position" — the whole product in one gesture.
+    Reads at 32px as: circle + diagonal notch. Nothing else. No chrome.
+  -->
+  <defs>
+    <radialGradient id="knob" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#1e1e2c"/>
+      <stop offset="100%" stop-color="#0e0e18"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Tile -->
+  <rect width="512" height="512" rx="104" fill="#09090e"/>
+
+  <!-- Outer track groove (the housing around the knob) -->
+  <circle cx="256" cy="256" r="196" fill="none" stroke="#18181f" stroke-width="28"/>
+
+  <!-- Scale dots — 270° arc from 225° (7 o'clock) to 135° (5 o'clock) CW through top -->
+  <!-- 9 dots evenly at 33.75° steps, r=196 -->
+  <!-- dim = not yet reached, bright = current position -->
+  <!-- 1: 225° → (122, 390) -->
+  <circle cx="122" cy="390" r="7" fill="#f59e0b" opacity="0.18"/>
+  <!-- 2: 258.75° → (70, 293) -->
+  <circle cx="70" cy="293" r="7" fill="#f59e0b" opacity="0.18"/>
+  <!-- 3: 292.5° → (80, 183) -->
+  <circle cx="80" cy="183" r="7" fill="#f59e0b" opacity="0.18"/>
+  <!-- 4: 326.25° → (150, 98) -->
+  <circle cx="150" cy="98" r="7" fill="#f59e0b" opacity="0.30"/>
+  <!-- 5: 0° → (256, 60) -->
+  <circle cx="256" cy="60" r="7" fill="#f59e0b" opacity="0.50"/>
+  <!-- 6: 33.75° → (362, 98) -->
+  <circle cx="362" cy="98" r="7" fill="#f59e0b" opacity="0.80"/>
+  <!-- CURRENT POSITION: 60° → (421, 158) — active, bright -->
+  <circle cx="421" cy="158" r="10" fill="#f59e0b"/>
+  <!-- 7: 67.5° → (432, 183) dim (past current) -->
+  <circle cx="432" cy="183" r="7" fill="#f59e0b" opacity="0.14"/>
+  <!-- 8: 101.25° → (442, 293) -->
+  <circle cx="442" cy="293" r="7" fill="#f59e0b" opacity="0.14"/>
+  <!-- 9: 135° → (390, 390) -->
+  <circle cx="390" cy="390" r="7" fill="#f59e0b" opacity="0.14"/>
+
+  <!-- Knob body -->
+  <circle cx="256" cy="256" r="168" fill="url(#knob)" stroke="#262632" stroke-width="3"/>
+
+  <!-- Notch line from center toward 2 o'clock (60°) -->
+  <!-- Endpoint: (256+138*sin60°, 256-138*cos60°) = (256+119.5, 256-69) = (375, 187) -->
+  <line x1="256" y1="256" x2="375" y2="187"
+        stroke="#f59e0b" stroke-width="24" stroke-linecap="round"/>
+
+  <!-- Counter-tail (balance, subtle) -->
+  <!-- opposite: (256+46*sin240°, 256-46*cos240°) = (256-39.8, 256+23) = (216, 279) -->
+  <line x1="256" y1="256" x2="216" y2="279"
+        stroke="#f59e0b" stroke-width="14" stroke-linecap="round" opacity="0.28"/>
+
+  <!-- Center hub ring -->
+  <circle cx="256" cy="256" r="28" fill="#f59e0b"/>
+  <circle cx="256" cy="256" r="14" fill="#09090e"/>
+</svg>
