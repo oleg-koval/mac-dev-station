@@ -54,7 +54,7 @@ func (r *Reporter) ManualStep(msg, link string) {
 	if link != "" {
 		r.Step("See: " + link)
 		if !r.dryRun {
-			_ = exec.Command("open", link).Run()
+			_ = exec.Command("open", link).Run() //nolint:gosec // opens a URL with macOS system open
 		}
 	}
 	r.promptEnter()

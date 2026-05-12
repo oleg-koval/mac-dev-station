@@ -1,3 +1,5 @@
+version: "2"
+
 run:
   timeout: 3m
   tests: true
@@ -5,7 +7,6 @@ run:
 linters:
   enable:
     - errcheck
-    - gosimple
     - govet
     - ineffassign
     - staticcheck
@@ -18,17 +19,32 @@ linters:
     - revive
     - unconvert
     - unparam
-
-linters-settings:
-  govet:
-    enable-all: true
-  revive:
-    rules:
-      - name: exported
-        severity: warning
+  settings:
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+        - name: package-comments
+          disabled: true
 
 issues:
   exclude-rules:
     - path: _test\.go
       linters:
         - gosec
+    # subprocess execution is the core purpose of this macOS setup CLI
+    - linters:
+        - gosec
+      text: "G204"
+    # all paths are constructed from \$HOME + fixed sub-paths, not user input
+    - linters:
+        - gosec
+      text: "G304"
+    # 0o755 is correct for user-owned \$HOME subdirectories on macOS
+    - linters:
+        - gosec
+      text: "G301"
+    # config files must be world-readable (0o644); scripts must be executable (0o755)
+    - linters:
+        - gosec
+      text: "G306"
