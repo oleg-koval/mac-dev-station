@@ -1,0 +1,40 @@
+version: 2
+
+project_name: mac-dev-station
+
+builds:
+  - id: mac-dev-station
+    main: ./cmd/mac-dev-station
+    binary: mac-dev-station
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+
+archives:
+  - id: default
+    format: tar.gz
+    format_overrides:
+      - goos: darwin
+        format: zip
+    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+brews:
+  - name: mac-dev-station
+    repository:
+      owner: oleg-koval
+      name: homebrew-tap
+    directory: Formula
+    homepage: "https://github.com/oleg-koval/mac-dev-station"
+    description: "One-command macOS dev environment setup"
+    license: MIT
+    install: |
+      bin.install "mac-dev-station"
+      generate_completions_from_executable(bin/"mac-dev-station", "completion", base_name: "mac-dev-station")
