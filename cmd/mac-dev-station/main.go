@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
+
+	"github.com/oleg-koval/mac-dev-station/internal/phases"
+	"github.com/oleg-koval/mac-dev-station/internal/reporter"
 )
 
 var version = "dev"
@@ -29,10 +33,32 @@ func newRootCmd() *cobra.Command {
 func newDoctorCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "doctor",
-		Short: "Run verification only (phase 12)",
+		Short: "Run verification only (phase 13)",
 		Long:  "Verify that all components are installed and configured correctly.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("==> doctor: verification only")
+			ctx := context.Background()
+			rep := reporter.New(false)
+
+			verifyPhase := phases.Registry[12] // VerifyPhase is at index 12 (14th phase)
+			rep.Phase(13, len(phases.Registry), verifyPhase.Name())
+			rep.Step(verifyPhase.Description())
+
+			status, err := verifyPhase.Check(ctx)
+			if err != nil {
+				rep.Error(err.Error())
+				return err
+			}
+
+			switch status {
+			case phases.StatusSatisfied:
+				rep.OK("All components verified")
+			case phases.StatusPartial:
+				rep.Warn("Some components missing")
+				verifyPhase.Apply(ctx)
+			case phases.StatusMissing:
+				rep.Error("Critical components missing")
+			}
+
 			return nil
 		},
 	}
@@ -44,25 +70,57 @@ func newCheatsheetCmd() *cobra.Command {
 		Short: "Print hotkey map",
 		Long:  "Display all keyboard shortcuts and aliases.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("==> Cheatsheet")
-			fmt.Println("Hyper Key (Caps Lock)")
-			fmt.Println("  Caps tap      → Escape")
-			fmt.Println("  Caps+T        → Workspace 3 (kitty)")
-			fmt.Println("  Caps+B        → Workspace 1 (Chrome)")
-			fmt.Println("  Caps+C        → Workspace 2 (Cursor)")
-			fmt.Println("  Caps+S        → Workspace 4 (Slack)")
-			fmt.Println("  Caps+L        → Workspace 4 (Linear)")
-			fmt.Println("  Caps+F        → Workspace 5 (Figma)")
-			fmt.Println("  Caps+N        → Workspace 6 (Notion)")
-			fmt.Println("  Caps+H/J/K/;  → Arrow keys")
-			return nil
+			ctx := context.Background()
+			cheatsheetPhase := phases.Registry[13] // CheatsheetPhase is at index 13 (14th phase)
+			return cheatsheetPhase.Apply(ctx)
 		},
 	}
 }
 
 func runSetup(cmd *cobra.Command, args []string) error {
-	fmt.Println("mac-dev-station: setup phases")
-	fmt.Println("(implementation in progress)")
+	ctx := context.Background()
+	rep := reporter.New(false)
+
+	fmt.Println("==> mac-dev-station setup")
+
+	for i, phase := range phases.Registry {
+		rep.Phase(i+1, len(phases.Registry), phase.Name())
+		rep.Step(phase.Description())
+
+		status, err := phase.Check(ctx)
+		if err != nil {
+			rep.Error(fmt.Sprintf("%v", err))
+			continue
+		}
+
+		switch status {
+		case phases.StatusSatisfied:
+			rep.OK("Already configured")
+		case phases.StatusPartial:
+			rep.Warn("Partial setup, continuing")
+			if err := phase.Apply(ctx); err != nil {
+				rep.Error(fmt.Sprintf("%v", err))
+			} else {
+				rep.OK("Applied")
+			}
+		case phases.StatusMissing:
+			rep.Step("Applying...")
+			if err := phase.Apply(ctx); err != nil {
+				rep.Error(fmt.Sprintf("%v", err))
+			} else {
+				rep.OK("Applied")
+			}
+		case phases.StatusUnknown:
+			rep.Step("Checking...")
+			if err := phase.Apply(ctx); err != nil {
+				rep.Error(fmt.Sprintf("%v", err))
+			} else {
+				rep.OK("Applied")
+			}
+		}
+	}
+
+	fmt.Println("\n==> Setup complete!")
 	return nil
 }
 
