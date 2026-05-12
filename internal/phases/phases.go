@@ -1,6 +1,12 @@
 package phases
 
-import "context"
+import (
+	"context"
+	"os"
+	"path/filepath"
+)
+
+var homeDir = os.ExpandEnv("$HOME")
 
 type Status int
 
@@ -104,10 +110,38 @@ func (p *FoldersPhase) Description() string {
 }
 
 func (p *FoldersPhase) Check(ctx context.Context) (Status, error) {
-	return StatusUnknown, nil
+	folders := []string{
+		filepath.Join(homeDir, "Work"),
+		filepath.Join(homeDir, "oss"),
+		filepath.Join(homeDir, "code"),
+	}
+
+	allExist := true
+	for _, folder := range folders {
+		if _, err := os.Stat(folder); err != nil {
+			allExist = false
+			break
+		}
+	}
+
+	if allExist {
+		return StatusSatisfied, nil
+	}
+	return StatusMissing, nil
 }
 
 func (p *FoldersPhase) Apply(ctx context.Context) error {
+	folders := []string{
+		filepath.Join(homeDir, "Work"),
+		filepath.Join(homeDir, "oss"),
+		filepath.Join(homeDir, "code"),
+	}
+
+	for _, folder := range folders {
+		if err := os.MkdirAll(folder, 0o755); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
