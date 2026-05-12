@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/oleg-koval/mac-dev-station/internal/configs"
 	"github.com/oleg-koval/mac-dev-station/internal/system"
 )
 
@@ -120,11 +121,40 @@ func (p *BrewfilePhase) Description() string {
 }
 
 func (p *BrewfilePhase) Check(ctx context.Context) (Status, error) {
-	return StatusUnknown, nil
+	// Simple check: verify a few key tools are installed
+	checks := []string{"brew", "git", "gh", "starship"}
+	allPresent := true
+
+	for _, tool := range checks {
+		_, err := system.RunCmd(ctx, "which", tool)
+		if err != nil {
+			allPresent = false
+			break
+		}
+	}
+
+	// Check for at least one GUI app
+	appsPresent := system.AppInstalled(ctx, "kitty") || system.AppInstalled(ctx, "Cursor")
+
+	if allPresent && appsPresent {
+		return StatusSatisfied, nil
+	}
+	if allPresent {
+		return StatusPartial, nil
+	}
+	return StatusMissing, nil
 }
 
 func (p *BrewfilePhase) Apply(ctx context.Context) error {
-	return nil
+	brewfilePath := filepath.Join(homeDir, "Brewfile")
+
+	// Write embedded Brewfile
+	if err := os.WriteFile(brewfilePath, configs.BrewfileContent, 0o644); err != nil {
+		return fmt.Errorf("failed to write Brewfile: %w", err)
+	}
+
+	// Run brew bundle
+	return system.BrewBundle(ctx, os.Stdout, brewfilePath)
 }
 
 // FoldersPhase creates PARA folders
