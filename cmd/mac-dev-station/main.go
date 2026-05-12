@@ -19,9 +19,7 @@ func newRootCmd() *cobra.Command {
 		Short:   "One-command macOS dev environment setup",
 		Long:    "mac-dev-station: Replicate a complete productivity stack on a fresh Mac with Karabiner, AeroSpace, Hammerspoon, kitty, Raycast, zsh, and more.",
 		Version: version,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runSetup(cmd, args)
-		},
+		RunE: runSetup,
 	}
 
 	cmd.AddCommand(newDoctorCmd())
@@ -54,7 +52,9 @@ func newDoctorCmd() *cobra.Command {
 				rep.OK("All components verified")
 			case phases.StatusPartial:
 				rep.Warn("Some components missing")
-				verifyPhase.Apply(ctx)
+				if err := verifyPhase.Apply(ctx); err != nil {
+					rep.Error(err.Error())
+				}
 			case phases.StatusMissing:
 				rep.Error("Critical components missing")
 			}

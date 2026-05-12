@@ -1,3 +1,4 @@
+// Package system provides macOS-specific helpers: command execution, app detection, and Homebrew utilities.
 package system
 
 import (

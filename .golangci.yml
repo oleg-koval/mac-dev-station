@@ -1,3 +1,5 @@
+version: "2"
+
 run:
   timeout: 3m
   tests: true
@@ -5,7 +7,6 @@ run:
 linters:
   enable:
     - errcheck
-    - gosimple
     - govet
     - ineffassign
     - staticcheck
@@ -15,20 +16,5 @@ linters:
     - gocritic
     - gosec
     - misspell
-    - revive
     - unconvert
     - unparam
-
-linters-settings:
-  govet:
-    enable-all: true
-  revive:
-    rules:
-      - name: exported
-        severity: warning
-
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - gosec

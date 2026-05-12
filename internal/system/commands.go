@@ -14,7 +14,7 @@ import (
 func RunCmd(ctx context.Context, cmd string, args ...string) (string, error) {
 	logCommand(cmd, args)
 
-	c := exec.CommandContext(ctx, cmd, args...)
+	c := exec.CommandContext(ctx, cmd, args...) //nolint:gosec // subprocess execution is the core purpose of this tool
 	var stdout, stderr bytes.Buffer
 	c.Stdout = &stdout
 	c.Stderr = &stderr
@@ -30,7 +30,7 @@ func RunCmd(ctx context.Context, cmd string, args ...string) (string, error) {
 func RunCmdStream(ctx context.Context, out io.Writer, cmd string, args ...string) error {
 	logCommand(cmd, args)
 
-	c := exec.CommandContext(ctx, cmd, args...)
+	c := exec.CommandContext(ctx, cmd, args...) //nolint:gosec // subprocess execution is the core purpose of this tool
 	c.Stdout = out
 	c.Stderr = out
 	c.Stdin = os.Stdin

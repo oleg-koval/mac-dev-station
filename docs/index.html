@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mac-dev-station — One-command macOS dev environment setup</title>
+  <meta name="description" content="Set up a complete productivity stack on a fresh Mac in one command. Karabiner Hyper key, AeroSpace, Hammerspoon, kitty, Raycast, zsh + starship — all wired together.">
+  <meta name="keywords" content="macOS, developer environment, dotfiles, Karabiner, AeroSpace, Hammerspoon, Apple Silicon, brew, setup automation">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="mac-dev-station — One-command macOS dev environment setup">
+  <meta property="og:description" content="Set up a complete productivity stack on a fresh Mac in one command.">
+  <meta property="og:image" content="https://oleg-koval.github.io/mac-dev-station/social-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://oleg-koval.github.io/mac-dev-station/">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="mac-dev-station — One-command macOS dev setup">
+  <meta name="twitter:description" content="Fresh Mac → full productivity stack in minutes.">
+  <meta name="twitter:image" content="https://oleg-koval.github.io/mac-dev-station/social-card.png">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --amber: #f59e0b;
+      --amber-light: #fbbf24;
+      --blue: #38bdf8;
+      --fg: rgba(255,255,255,0.90);
+      --fg-muted: rgba(255,255,255,0.55);
+      --fg-dim: rgba(255,255,255,0.30);
+      --glass-bg: rgba(255,255,255,0.04);
+      --glass-border: rgba(255,255,255,0.08);
+      --card-bg: rgba(255,255,255,0.04);
+      --code-bg: rgba(0,0,0,0.40);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+      background: #08080f;
+      color: var(--fg);
+      overflow-x: hidden;
+    }
+
+    /* Ambient glow — amber source top-left, deep navy anchor bottom-right */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 700px 500px at 8% 12%, rgba(245,158,11,0.13) 0%, transparent 68%),
+        radial-gradient(ellipse 600px 500px at 90% 88%, rgba(17,36,102,0.35) 0%, transparent 70%),
+        radial-gradient(ellipse 350px 280px at 62% 4%, rgba(245,158,11,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Hero */
+    .hero {
+      padding: 96px 0 72px;
+      text-align: center;
+    }
+
+    .hero-logo {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 28px;
+      display: block;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--amber), var(--amber-light), #fef3c7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    .hero-sub {
+      font-size: 1.15rem;
+      color: var(--fg-muted);
+      max-width: 560px;
+      margin: 0 auto 40px;
+      line-height: 1.65;
+    }
+
+    /* Badges */
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 44px;
+    }
+
+    .badges img { height: 20px; }
+
+    /* Install block */
+    .install-block {
+      background: var(--code-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 20px 24px;
+      text-align: left;
+      max-width: 600px;
+      margin: 0 auto 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .install-block::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto;
+      height: 2px;
+      background: linear-gradient(90deg, var(--amber), var(--amber-light), var(--blue));
+    }
+
+    .install-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--fg-dim);
+      margin-bottom: 8px;
+    }
+
+    .install-block code {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.92rem;
+      color: var(--fg);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .install-or {
+      text-align: center;
+      color: var(--fg-dim);
+      font-size: 0.85rem;
+      margin: 8px 0;
+    }
+
+    /* Section */
+    section {
+      padding: 56px 0;
+      border-top: 1px solid var(--glass-border);
+    }
+
+    section h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 28px;
+      color: var(--fg);
+    }
+
+    /* Phase grid */
+    .phase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .phase-card {
+      background: var(--card-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .phase-card:hover {
+      border-color: rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.07);
+    }
+
+    .phase-num {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: var(--amber);
+      background: rgba(245,158,11,0.10);
+      border-radius: 4px;
+      padding: 2px 7px;
+      margin-bottom: 8px;
+      letter-spacing: 0.05em;
+    }
+
+    .phase-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--fg);
+      margin-bottom: 4px;
+    }
+
+    .phase-desc {
+      font-size: 0.82rem;
+      color: var(--fg-muted);
+      line-height: 1.5;
+    }
+
+    /* Feature pills */
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .feature-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
+      padding: 7px 16px;
+      font-size: 0.85rem;
+      color: var(--fg-muted);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    /* Hotkey table */
+    .hotkey-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .hotkey-group {
+      background: var(--card-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .hotkey-group h3 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--amber);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 14px;
+    }
+
+    .hotkey-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .hotkey-row:last-child { border-bottom: none; }
+
+    kbd {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.78rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 5px;
+      padding: 2px 7px;
+      color: var(--blue);
+      white-space: nowrap;
+    }
+
+    .hotkey-action {
+      font-size: 0.82rem;
+      color: var(--fg-muted);
+      text-align: right;
+      margin-left: 12px;
+    }
+
+    /* Code block */
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 20px 22px;
+      overflow-x: auto;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.87rem;
+      color: var(--fg);
+      line-height: 1.7;
+    }
+
+    /* Links */
+    a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+
+    a:hover { text-decoration: underline; }
+
+    /* Footer */
+    footer {
+      padding: 40px 0;
+      text-align: center;
+      border-top: 1px solid var(--glass-border);
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+
+    .footer-links a {
+      font-size: 0.9rem;
+      color: var(--fg-muted);
+    }
+
+    .footer-meta {
+      font-size: 0.8rem;
+      color: var(--fg-dim);
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .hero { padding: 64px 0 48px; }
+      .hotkey-section { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <img class="hero-logo" src="./logo.svg" alt="mac-dev-station">
+    <h1>mac-dev-station</h1>
+    <p class="hero-sub">
+      One command sets up a complete productivity stack on a fresh Mac.
+      Karabiner · AeroSpace · Hammerspoon · kitty · Raycast · zsh + starship — all wired together.
+    </p>
+
+    <div class="badges">
+      <a href="https://github.com/oleg-koval/mac-dev-station/actions/workflows/ci.yml">
+        <img src="https://github.com/oleg-koval/mac-dev-station/actions/workflows/ci.yml/badge.svg" alt="CI">
+      </a>
+      <a href="https://goreportcard.com/report/github.com/oleg-koval/mac-dev-station">
+        <img src="https://goreportcard.com/badge/github.com/oleg-koval/mac-dev-station" alt="Go Report Card">
+      </a>
+      <a href="https://pkg.go.dev/github.com/oleg-koval/mac-dev-station">
+        <img src="https://pkg.go.dev/badge/github.com/oleg-koval/mac-dev-station.svg" alt="Go Reference">
+      </a>
+      <a href="https://securityscorecards.dev/viewer/?uri=github.com/oleg-koval/mac-dev-station">
+        <img src="https://api.securityscorecards.dev/projects/github.com/oleg-koval/mac-dev-station/badge" alt="OpenSSF Scorecard">
+      </a>
+    </div>
+
+    <div class="install-block">
+      <div class="install-label">Homebrew (recommended)</div>
+      <code>brew tap oleg-koval/tap
+brew install mac-dev-station
+mac-dev-station</code>
+    </div>
+
+    <div class="install-or">or</div>
+
+    <div class="install-block">
+      <div class="install-label">Without Homebrew</div>
+      <code>curl -fsSL https://raw.githubusercontent.com/oleg-koval/mac-dev-station/main/install.sh | bash</code>
+    </div>
+  </div>
+
+  <!-- Phases -->
+  <section>
+    <h2>13 idempotent phases</h2>
+    <div class="phase-grid">
+      <div class="phase-card"><span class="phase-num">00</span><div class="phase-name">Pre-flight</div><div class="phase-desc">macOS version, brew, xcode-select, gh auth check</div></div>
+      <div class="phase-card"><span class="phase-num">01</span><div class="phase-name">Foundations</div><div class="phase-desc">Install/update Homebrew and xcode-select</div></div>
+      <div class="phase-card"><span class="phase-num">02</span><div class="phase-name">Brewfile</div><div class="phase-desc">Install all CLI tools and GUI apps</div></div>
+      <div class="phase-card"><span class="phase-num">03</span><div class="phase-name">Folders</div><div class="phase-desc">Create ~/Work (PARA), ~/oss, ~/code</div></div>
+      <div class="phase-card"><span class="phase-num">04</span><div class="phase-name">Karabiner</div><div class="phase-desc">Hyper key config + app launchers</div></div>
+      <div class="phase-card"><span class="phase-num">05</span><div class="phase-name">AeroSpace</div><div class="phase-desc">Tiling WM with auto-routing to workspaces</div></div>
+      <div class="phase-card"><span class="phase-num">06</span><div class="phase-name">Hammerspoon</div><div class="phase-desc">Display dock/undock auto-detection</div></div>
+      <div class="phase-card"><span class="phase-num">07</span><div class="phase-name">kitty</div><div class="phase-desc">Terminal config + project switcher (Cmd+P)</div></div>
+      <div class="phase-card"><span class="phase-num">08</span><div class="phase-name">Shell</div><div class="phase-desc">zsh + starship + aliases + 9am backup cron</div></div>
+      <div class="phase-card"><span class="phase-num">09</span><div class="phase-name">Raycast</div><div class="phase-desc">Open for first-time setup (Cmd+Space)</div></div>
+      <div class="phase-card"><span class="phase-num">10</span><div class="phase-name">OSS starters</div><div class="phase-desc">Clone oleg-koval/starters</div></div>
+      <div class="phase-card"><span class="phase-num">11</span><div class="phase-name">Permissions</div><div class="phase-desc">Walks through Accessibility and Driver Extensions</div></div>
+      <div class="phase-card"><span class="phase-num">12</span><div class="phase-name">Verification</div><div class="phase-desc">Final smoke test of every component</div></div>
+      <div class="phase-card"><span class="phase-num">13</span><div class="phase-name">Cheatsheet</div><div class="phase-desc">Prints all hotkeys to terminal</div></div>
+    </div>
+  </section>
+
+  <!-- What gets installed -->
+  <section>
+    <h2>What gets installed</h2>
+    <p style="color:var(--fg-muted);margin-bottom:16px;font-size:0.9rem;">CLI tools via Homebrew</p>
+    <div class="features" style="margin-bottom:28px">
+      <span class="feature-pill">git</span><span class="feature-pill">gh</span><span class="feature-pill">fnm</span>
+      <span class="feature-pill">uv</span><span class="feature-pill">starship</span><span class="feature-pill">zoxide</span>
+      <span class="feature-pill">atuin</span><span class="feature-pill">fzf</span><span class="feature-pill">ripgrep</span>
+      <span class="feature-pill">fd</span><span class="feature-pill">bat</span><span class="feature-pill">eza</span>
+      <span class="feature-pill">glow</span><span class="feature-pill">btop</span><span class="feature-pill">jq</span>
+      <span class="feature-pill">yq</span><span class="feature-pill">delta</span><span class="feature-pill">tmux</span>
+      <span class="feature-pill">neovim</span><span class="feature-pill">displayplacer</span>
+    </div>
+    <p style="color:var(--fg-muted);margin-bottom:16px;font-size:0.9rem;">GUI apps via cask</p>
+    <div class="features" style="margin-bottom:28px">
+      <span class="feature-pill">kitty</span><span class="feature-pill">cursor</span><span class="feature-pill">raycast</span>
+      <span class="feature-pill">karabiner-elements</span><span class="feature-pill">hammerspoon</span>
+      <span class="feature-pill">aerospace</span><span class="feature-pill">orbstack</span>
+      <span class="feature-pill">1password-cli</span>
+    </div>
+    <p style="color:var(--fg-muted);margin-bottom:16px;font-size:0.9rem;">Fonts</p>
+    <div class="features">
+      <span class="feature-pill">Geist Mono</span>
+      <span class="feature-pill">JetBrains Mono Nerd Font</span>
+    </div>
+  </section>
+
+  <!-- Hotkeys -->
+  <section>
+    <h2>Hotkey map</h2>
+    <div class="hotkey-section">
+      <div class="hotkey-group">
+        <h3>Hyper Key (Caps Lock)</h3>
+        <div class="hotkey-row"><kbd>Caps tap</kbd><span class="hotkey-action">Escape</span></div>
+        <div class="hotkey-row"><kbd>Caps+T</kbd><span class="hotkey-action">WS 3 → kitty</span></div>
+        <div class="hotkey-row"><kbd>Caps+B</kbd><span class="hotkey-action">WS 1 → Chrome</span></div>
+        <div class="hotkey-row"><kbd>Caps+C</kbd><span class="hotkey-action">WS 2 → Cursor</span></div>
+        <div class="hotkey-row"><kbd>Caps+S</kbd><span class="hotkey-action">WS 4 → Slack</span></div>
+        <div class="hotkey-row"><kbd>Caps+L</kbd><span class="hotkey-action">WS 4 → Linear</span></div>
+        <div class="hotkey-row"><kbd>Caps+F</kbd><span class="hotkey-action">WS 5 → Figma</span></div>
+        <div class="hotkey-row"><kbd>Caps+N</kbd><span class="hotkey-action">WS 6 → Notion</span></div>
+        <div class="hotkey-row"><kbd>Caps+H/J/K/;</kbd><span class="hotkey-action">Arrow keys</span></div>
+      </div>
+      <div class="hotkey-group">
+        <h3>AeroSpace (Alt prefix)</h3>
+        <div class="hotkey-row"><kbd>Alt+1-9</kbd><span class="hotkey-action">Switch workspace</span></div>
+        <div class="hotkey-row"><kbd>Alt+Shift+1-9</kbd><span class="hotkey-action">Move window to WS</span></div>
+        <div class="hotkey-row"><kbd>Alt+H/J/K/L</kbd><span class="hotkey-action">Focus window (vim)</span></div>
+        <div class="hotkey-row"><kbd>Alt+Shift+H/J/K/L</kbd><span class="hotkey-action">Move window</span></div>
+        <div class="hotkey-row"><kbd>Alt+F</kbd><span class="hotkey-action">Fullscreen</span></div>
+        <div class="hotkey-row"><kbd>Alt+/</kbd><span class="hotkey-action">Tiling layout</span></div>
+        <div class="hotkey-row"><kbd>Alt+,</kbd><span class="hotkey-action">Accordion layout</span></div>
+      </div>
+      <div class="hotkey-group">
+        <h3>Hammerspoon</h3>
+        <div class="hotkey-row"><kbd>Cmd+Ctrl+Alt+D</kbd><span class="hotkey-action">Force display layout</span></div>
+        <div class="hotkey-row"><span style="font-size:0.78rem;color:var(--fg-dim)">(auto)</span><span class="hotkey-action">Monitor connect/disconnect</span></div>
+      </div>
+      <div class="hotkey-group">
+        <h3>kitty</h3>
+        <div class="hotkey-row"><kbd>Cmd+P</kbd><span class="hotkey-action">Project switcher (fzf)</span></div>
+        <div class="hotkey-row"><kbd>Cmd+T</kbd><span class="hotkey-action">New tab</span></div>
+        <div class="hotkey-row"><kbd>Cmd+D</kbd><span class="hotkey-action">Vertical split</span></div>
+        <div class="hotkey-row"><kbd>Cmd+Shift+D</kbd><span class="hotkey-action">Horizontal split</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shell aliases -->
+  <section>
+    <h2>Shell aliases</h2>
+    <pre>dev &lt;name&gt;      # Full env: Cursor + kitty + GitHub in correct workspaces
+work &lt;name&gt;     # kitty only, workspace 3
+proj            # fzf project picker → cd
+go              # fzf picker → full dev env
+newproj &lt;name&gt;  # Scaffold new (project|area|scratch|oss)
+sync_projects   # Refresh kitty picker
+dock / undock   # Manual display layout trigger
+dclean          # Docker compose nuke + rebuild</pre>
+  </section>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="footer-links">
+      <a href="https://github.com/oleg-koval/mac-dev-station">GitHub</a>
+      <a href="https://github.com/oleg-koval/mac-dev-station/releases">Releases</a>
+      <a href="https://github.com/oleg-koval/mac-dev-station/issues">Issues</a>
+      <a href="https://github.com/oleg-koval/mac-dev-station/blob/main/CONTRIBUTING.md">Contributing</a>
+      <a href="https://github.com/oleg-koval/mac-dev-station/blob/main/SECURITY.md">Security</a>
+      <a href="https://buymeacoffee.com/olko">☕ Buy me a coffee</a>
+    </div>
+    <div style="margin-bottom:16px">
+      <a href="https://sellwithboost.com" target="_blank" rel="noopener noreferrer">
+        <img src="https://sellwithboost.com/badge/listing-dark.svg" alt="Listed on Sell With Boost" style="height:40px;width:auto;" />
+      </a>
+    </div>
+    <div class="footer-meta">
+      MIT License · Built by <a href="https://github.com/oleg-koval">oleg-koval</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

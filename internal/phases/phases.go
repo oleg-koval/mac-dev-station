@@ -1,3 +1,4 @@
+// Package phases defines the ordered setup phases for mac-dev-station.
 package phases
 
 import (
@@ -37,22 +38,22 @@ func backupConfig(srcPath string) error {
 	}
 
 	backupDir := filepath.Join(homeDir, ".dotfiles-backup-"+time.Now().Format("20060102"))
-	if err := os.MkdirAll(backupDir, 0o755); err != nil {
+	if err := os.MkdirAll(backupDir, 0o755); err != nil { //nolint:gosec // 0o755 is correct for $HOME subdirs
 		return fmt.Errorf("failed to create backup dir: %w", err)
 	}
 
-	content, err := os.ReadFile(srcPath)
+	content, err := os.ReadFile(srcPath) //nolint:gosec // path is derived from $HOME
 	if err != nil {
 		return fmt.Errorf("failed to read file for backup: %w", err)
 	}
 
 	relPath, _ := filepath.Rel(homeDir, srcPath)
 	backupPath := filepath.Join(backupDir, relPath)
-	if err := os.MkdirAll(filepath.Dir(backupPath), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(backupPath), 0o755); err != nil { //nolint:gosec // 0o755 for $HOME subdirs
 		return fmt.Errorf("failed to create backup subdirs: %w", err)
 	}
 
-	if err := os.WriteFile(backupPath, content, 0o644); err != nil {
+	if err := os.WriteFile(backupPath, content, 0o644); err != nil { //nolint:gosec // backup files match source perms
 		return fmt.Errorf("failed to write backup: %w", err)
 	}
 
@@ -61,7 +62,7 @@ func backupConfig(srcPath string) error {
 
 // fileSHA256 computes the SHA256 hash of a file's contents
 func fileSHA256(path string) (string, error) {
-	content, err := os.ReadFile(path)
+	content, err := os.ReadFile(path) //nolint:gosec // path is an internal config path derived from $HOME
 	if err != nil {
 		return "", err
 	}
@@ -212,7 +213,7 @@ func (p *BrewfilePhase) Apply(ctx context.Context) error {
 	brewfilePath := filepath.Join(homeDir, "Brewfile")
 
 	// Write embedded Brewfile
-	if err := os.WriteFile(brewfilePath, configs.BrewfileContent, 0o644); err != nil {
+	if err := os.WriteFile(brewfilePath, configs.BrewfileContent, 0o644); err != nil { //nolint:gosec // Brewfile must be world-readable
 		return fmt.Errorf("failed to write Brewfile: %w", err)
 	}
 
@@ -260,7 +261,7 @@ func (p *FoldersPhase) Apply(ctx context.Context) error {
 	}
 
 	for _, folder := range folders {
-		if err := os.MkdirAll(folder, 0o755); err != nil {
+		if err := os.MkdirAll(folder, 0o755); err != nil { //nolint:gosec // 0o755 for user workspace dirs
 			return err
 		}
 	}
@@ -309,13 +310,11 @@ func (p *KarabinerPhase) Apply(ctx context.Context) error {
 		return fmt.Errorf("backup failed: %w", err)
 	}
 
-	// Create config directory
-	if err := os.MkdirAll(configDir, 0o755); err != nil {
+	if err := os.MkdirAll(configDir, 0o755); err != nil { //nolint:gosec // 0o755 for $HOME/.config subdirs
 		return fmt.Errorf("failed to create config dir: %w", err)
 	}
 
-	// Write embedded config
-	if err := os.WriteFile(configPath, configs.KarabinerContent, 0o644); err != nil {
+	if err := os.WriteFile(configPath, configs.KarabinerContent, 0o644); err != nil { //nolint:gosec // app config files are world-readable
 		return fmt.Errorf("failed to write Karabiner config: %w", err)
 	}
 
@@ -355,10 +354,10 @@ func (p *AerospacePhase) Apply(ctx context.Context) error {
 	if err := backupConfig(configPath); err != nil {
 		return fmt.Errorf("backup failed: %w", err)
 	}
-	if err := os.MkdirAll(configDir, 0o755); err != nil {
+	if err := os.MkdirAll(configDir, 0o755); err != nil { //nolint:gosec // 0o755 for $HOME/.config subdirs
 		return fmt.Errorf("failed to create config dir: %w", err)
 	}
-	if err := os.WriteFile(configPath, configs.AerospaceContent, 0o644); err != nil {
+	if err := os.WriteFile(configPath, configs.AerospaceContent, 0o644); err != nil { //nolint:gosec // app config files are world-readable
 		return fmt.Errorf("failed to write AeroSpace config: %w", err)
 	}
 	return nil
@@ -399,13 +398,13 @@ func (p *HammerspoonPhase) Apply(ctx context.Context) error {
 	if err := backupConfig(initPath); err != nil {
 		return fmt.Errorf("backup failed: %w", err)
 	}
-	if err := os.MkdirAll(hsDir, 0o755); err != nil {
+	if err := os.MkdirAll(hsDir, 0o755); err != nil { //nolint:gosec // 0o755 for $HOME/.hammerspoon
 		return fmt.Errorf("failed to create config dir: %w", err)
 	}
-	if err := os.WriteFile(initPath, configs.HammerspoonInitContent, 0o644); err != nil {
+	if err := os.WriteFile(initPath, configs.HammerspoonInitContent, 0o644); err != nil { //nolint:gosec // Lua config files are world-readable
 		return fmt.Errorf("failed to write init.lua: %w", err)
 	}
-	if err := os.WriteFile(watcherPath, configs.HammerspoonDisplayWatcherContent, 0o644); err != nil {
+	if err := os.WriteFile(watcherPath, configs.HammerspoonDisplayWatcherContent, 0o644); err != nil { //nolint:gosec // Lua config files are world-readable
 		return fmt.Errorf("failed to write display-watcher.lua: %w", err)
 	}
 	return nil
@@ -447,16 +446,16 @@ func (p *KittyPhase) Apply(ctx context.Context) error {
 	if err := backupConfig(confPath); err != nil {
 		return fmt.Errorf("backup failed: %w", err)
 	}
-	if err := os.MkdirAll(kittyDir, 0o755); err != nil {
+	if err := os.MkdirAll(kittyDir, 0o755); err != nil { //nolint:gosec // 0o755 for $HOME/.config/kitty
 		return fmt.Errorf("failed to create config dir: %w", err)
 	}
-	if err := os.WriteFile(confPath, configs.KittyConfContent, 0o644); err != nil {
+	if err := os.WriteFile(confPath, configs.KittyConfContent, 0o644); err != nil { //nolint:gosec // kitty config is world-readable
 		return fmt.Errorf("failed to write kitty.conf: %w", err)
 	}
-	if err := os.WriteFile(themePath, configs.KittyColorSchemeContent, 0o644); err != nil {
+	if err := os.WriteFile(themePath, configs.KittyColorSchemeContent, 0o644); err != nil { //nolint:gosec // kitty config is world-readable
 		return fmt.Errorf("failed to write color scheme: %w", err)
 	}
-	if err := os.WriteFile(projPath, configs.KittyProjectsContent, 0o755); err != nil {
+	if err := os.WriteFile(projPath, configs.KittyProjectsContent, 0o755); err != nil { //nolint:gosec // Python script must be executable
 		return fmt.Errorf("failed to write projects.py: %w", err)
 	}
 	return nil
@@ -483,23 +482,31 @@ func (p *ShellPhase) Check(ctx context.Context) (Status, error) {
 
 func (p *ShellPhase) Apply(ctx context.Context) error {
 	zshDir := filepath.Join(homeDir, ".zsh")
-	os.MkdirAll(zshDir, 0o755)
+	if err := os.MkdirAll(zshDir, 0o755); err != nil { //nolint:gosec // 0o755 for $HOME/.zsh
+		return fmt.Errorf("failed to create zsh dir: %w", err)
+	}
 
-	// Write zshrc
 	zshPath := filepath.Join(homeDir, ".zshrc")
-	if err := os.WriteFile(zshPath, configs.ZshrcContent, 0o644); err != nil {
+	if err := os.WriteFile(zshPath, configs.ZshrcContent, 0o644); err != nil { //nolint:gosec // .zshrc must be world-readable
 		return fmt.Errorf("failed to write zshrc: %w", err)
 	}
 
-	// Write secrets template
+	// Write secrets template only if it doesn't exist — protect user's API keys.
 	secretsPath := filepath.Join(zshDir, "secrets.zsh")
-	os.WriteFile(secretsPath, configs.SecretsTemplateContent, 0o600)
+	if _, err := os.Stat(secretsPath); os.IsNotExist(err) {
+		if err := os.WriteFile(secretsPath, configs.SecretsTemplateContent, 0o600); err != nil {
+			return fmt.Errorf("failed to write secrets template: %w", err)
+		}
+	}
 
-	// Write backup script
 	scriptDir := filepath.Join(homeDir, "code/oss/scripts")
-	os.MkdirAll(scriptDir, 0o755)
+	if err := os.MkdirAll(scriptDir, 0o755); err != nil { //nolint:gosec // 0o755 for scripts dir in $HOME/code
+		return fmt.Errorf("failed to create scripts dir: %w", err)
+	}
 	scriptPath := filepath.Join(scriptDir, "backup-zsh.sh")
-	os.WriteFile(scriptPath, configs.BackupScriptContent, 0o755)
+	if err := os.WriteFile(scriptPath, configs.BackupScriptContent, 0o755); err != nil { //nolint:gosec // shell script must be executable
+		return fmt.Errorf("failed to write backup script: %w", err)
+	}
 
 	return nil
 }
@@ -547,7 +554,9 @@ func (p *StartersPhase) Check(ctx context.Context) (Status, error) {
 
 func (p *StartersPhase) Apply(ctx context.Context) error {
 	ossDir := filepath.Join(homeDir, "code")
-	os.MkdirAll(ossDir, 0o755)
+	if err := os.MkdirAll(ossDir, 0o755); err != nil { //nolint:gosec // 0o755 for $HOME/code
+		return fmt.Errorf("failed to create code dir: %w", err)
+	}
 	startersPath := filepath.Join(ossDir, "starters")
 	if _, err := os.Stat(startersPath); err == nil {
 		return nil // Already cloned
